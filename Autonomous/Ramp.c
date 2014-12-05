@@ -10,9 +10,9 @@
 
 void driveForward(const int mTime){
   motor[FR] = 50;
-  motor[FL] = -50;
+  motor[FL] = 50;
   motor[BR] = 50;
-  motor[BL] = -50;
+  motor[BL] = 50;
   wait1Msec(mTime);
 }
 
