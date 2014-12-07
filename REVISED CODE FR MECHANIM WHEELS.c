@@ -1,5 +1,9 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  none,     none)
 #pragma config(Hubs,  S2, HTServo,  none,     none,     none)
+#pragma config(Hubs,  S3, HTMotor,  none,     none,     none)
+#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
+#pragma config(Sensor, S2,     ,               sensorI2CMuxController)
+#pragma config(Sensor, S3,     ,               sensorI2CMuxController)
 #pragma config(Motor,  motorA,           ,             tmotorNXT, openLoop, encoder)
 #pragma config(Motor,  motorB,           ,             tmotorNXT, openLoop, encoder)
 #pragma config(Motor,  motorC,           ,             tmotorNXT, openLoop, encoder)
@@ -7,8 +11,10 @@
 #pragma config(Motor,  mtr_S1_C1_2,     BL,            tmotorTetrix, openLoop, reversed)
 #pragma config(Motor,  mtr_S1_C2_1,     FR,            tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C2_2,     BR,            tmotorTetrix, openLoop)
-#pragma config(Servo,  srvo_S2_C1_1,    PegServoRight,        tServoStandard)
-#pragma config(Servo,  srvo_S2_C1_2,    PegServoLeft,         tServoStandard)
+#pragma config(Motor,  mtr_S3_C1_1,     Lift,          tmotorTetrix, openLoop, reversed)
+#pragma config(Motor,  mtr_S3_C1_2,     BallContainer, tmotorTetrix, openLoop, reversed)
+#pragma config(Servo,  srvo_S2_C1_1,    PegServoLeft,         tServoStandard)
+#pragma config(Servo,  srvo_S2_C1_2,    PegServoRight,        tServoStandard)
 #pragma config(Servo,  srvo_S2_C1_3,    servo3,               tServoNone)
 #pragma config(Servo,  srvo_S2_C1_4,    servo4,               tServoNone)
 #pragma config(Servo,  srvo_S2_C1_5,    servo5,               tServoNone)
@@ -35,7 +41,7 @@ void initializeRobot(){
 		wait10Msec(1);
 	}
 	initial = initial / 100; //divides by 100 to find the average reading
-  return;
+	return;
 }
 
 // This is the superdrive task. If you can think of any better names, please tell me :P
@@ -58,7 +64,7 @@ task superDrive(){
 		// starts free-spinning mode
 		if (joy1Btn(6)==1){
 			// find joystick vector angle
-	//		joyAngle = atan2(y1, x1);
+			//		joyAngle = atan2(y1, x1);
 			// find joystick vector magnitude
 			mag = sqrt(x1*x1+y1*y1)/2;
 			if (mag>64)
@@ -66,9 +72,9 @@ task superDrive(){
 			// get calculated heading
 			calcHeading = radheading - initialHeading;
 			// find the direction needed to move
-	    	moveDirection(joyAngle + calcHeading, mag);
-	    	// fix movement drifting
-	    	if (abs(joystick.joy1_x1)<minJoy&&abs(joystick.joy1_y1)<minJoy/*&&abs(joystick.joy1_x2)<minJoy*/){
+		//	moveDirection(joyAngle + calcHeading, mag);
+			// fix movement drifting
+			if (abs(joystick.joy1_x1)<minJoy&&abs(joystick.joy1_y1)<minJoy/*&&abs(joystick.joy1_x2)<minJoy*/){
 				FLset=0;FRset=0;
 			}
 			// find turning magnitude
@@ -83,11 +89,11 @@ task superDrive(){
 			movementAmount = (mag*3)/totalAmount;
 			turningAmount = turning/totalAmount;
 			// Apply finished values to motors
-	  		motor[FL] = FLset*movementAmount+turning*turningAmount;
+			motor[FL] = FLset*movementAmount+turning*turningAmount;
 			motor[FR] = FRset*movementAmount-turning*turningAmount;
 			motor[BL] = FRset*movementAmount+turning*turningAmount;
 			motor[BR] = FLset*movementAmount-turning*turningAmount;
-		} else {
+			} else {
 			// Resets movement values
 			LF = 0;RF = 0;LB = 0;RB = 0;
 			// Get joystick values
@@ -115,25 +121,25 @@ task tube (){
 	int backGrabber = 0;
 
 	//set grabbers to starting position
-	servo[PegServoLeft]= 0;
-	servo[PegServoRight]= 255;
+//	servo[PegServoLeft]= 0;
+//	servo[PegServoRight]= 255;
 	while(true){
-			if(joy1Btn(1) && backGrabber == 0) //if you hit it and the grabber is up, take it down
-			{
-					backGrabber = 1;  //toggled down
-					servo[PegServoLeft]= 255;
-					servo[PegServoRight]=0;
-					wait1Msec(500);
-			}
-			else if(joy1Btn(1)&& backGrabber == 1)
-			{
-					backGrabber = 0; //toggle up
-					servo[PegServoLeft]=0;
-					servo[PegServoRight]= 255;
-					wait1Msec(500);
-			}
+		if(joy1Btn(1) && backGrabber == 0) //if you hit it and the grabber is up, take it down
+		{
+			backGrabber = 1;  //toggled down
+			servo[PegServoLeft]= 255;
+			servo[PegServoRight]=0;
+			wait1Msec(500);
+		}
+		else if(joy1Btn(1)&& backGrabber == 1)
+		{
+			backGrabber = 0; //toggle up
+			servo[PegServoLeft]=0;
+			servo[PegServoRight]= 255;
+			wait1Msec(500);
+		}
 
-			wait1Msec(10);
+		wait1Msec(10);
 	}
 
 }
@@ -175,23 +181,61 @@ task display(){
 		eraseDisplay();
 		//nxtDisplayCenteredTextLine(0, "Color: %d", c);
 		nxtDisplayCenteredTextLine(0, "Heading: %d", heading);
-		nxtDisplayCenteredTextLine(1, "joyAngle: %d", joyAngle);
+//		nxtDisplayCenteredTextLine(1, "joyAngle: %d", joyAngle);
 		wait1Msec(20);
 	}
 }
 
+task sliderLift(){
+	motor[Lift]=0;
+	while(true){
+		if(joy1Btn(5))
+		{
+			motor[Lift]=20;
+		}
+		else if(joy1Btn(7))
+		{
+			motor[Lift]=-20;
+		}
+		else
+		{
+			motor[Lift]=0;
+		}
+	}
+}
+
+task rotateContainer(){
+	motor[BallContainer]=0;
+	while(true){
+
+		if(joy1Btn(4))
+		{
+			motor[BallContainer]=15;
+		}
+		else if(joy1Btn(6))
+		{
+			motor[BallContainer]=-15;
+		}
+		else
+		{
+			motor[BallContainer]=0;
+		}
+	}
+}
+
 task main(){
-  initializeRobot();
+	initializeRobot();
 
-  waitForStart();   // wait for start of tele-op phase
-  //StartTask(display);
-  //StartTask(heading);
-  StartTask(tube);
-  StartTask(drive);
-
-  //StartTask(superDrive);
-  while (true)
-  {
-	  wait10Msec(1000);
-  }
+	waitForStart();   // wait for start of tele-op phase
+	//StartTask(display);
+	//StartTask(heading);
+	StartTask(tube);
+	StartTask(drive);
+	StartTask(sliderLift);
+	StartTask(rotateContainer);
+	//StartTask(superDrive);
+	while (true)
+	{
+		wait10Msec(1000);
+	}
 }
