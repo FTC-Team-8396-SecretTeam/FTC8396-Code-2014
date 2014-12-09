@@ -35,13 +35,15 @@ task main()
 
   waitForStart(); // Wait for the beginning of autonomous phase.
 
-  while (true){
   	motor[FR] = 50;
 	  motor[FL] = -50;
 	  motor[BR] = 50;
 	  motor[BL] = -50;
 	  wait1Msec(3000);
-  }
+		motor[FR] = 0;
+	  motor[FL] = 0;
+	  motor[BR] = 0;
+	  motor[BL] = 0;
 
   while(1 == 1)
   {
