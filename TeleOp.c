@@ -16,16 +16,20 @@
 #pragma config(Servo,  srvo_S1_C4_5,    servo5,               tServoNone)
 #pragma config(Servo,  srvo_S1_C4_6,    servo6,               tServoNone)
 
-/* Drivers */
-#include "JoystickDriver.c"
-#include "drivers/hightechnic-irseeker-v2.h"
-#include "drivers/hightechnic-accelerometer.h"
-#include "drivers/hightechnic-compass.h"
+/* Start Drivers */
+#include "JoystickDriver.c" // include file to "handle" the Bluetooth messages
+#include "HTAC-driver.h" // HiTechnic Acceleration Sensor Driver
+#include "HTMC-driver.h" // HiTechnic Compass Sensor Driver
+#include "HTGYRO-driver.h" // HiTechnic Gyroscopic Sensor Driver
+#include "HTIRS2-driver.h" // HiTechnic IR Seeker V2 Driver
+/* End Drivers */
 
+/* Start Integers */
 int positionGrabber30; // position grabber30 servo
 int positionGrabber60; // position grabber60 servo
 int positionDump30; // position dump30 servo
 int positionDump60; // position dump60 servo
+/* End Integers */
 
 void initializeRobot(){
 	positionGrabber30 = 0; // position grabber30 servo to up
@@ -36,105 +40,105 @@ void initializeRobot(){
 	return;
 }
 
-/* Start Tube Task */
-task tube30 (){
+/* Start Tube 30 Task */
+task tube30() {
 
 	while(true){
-		if(joy1Btn(1) && positionGrabber30 == 0){ // if you hit it and the grabber is up, take it down
+		if(joy1Btn(1) && positionGrabber30 == 0) { // if you hit it and the grabber is up, take it down
 			positionGrabber30 = 1;  // toggle down
-			servo[grabber30]= 255;
-			servo[grabber30]=0;
+			servo[grabber30] = 255;
+			servo[grabber30] = 0;
 			wait1Msec(500);
 	}
 
-	else if(joy1Btn(1) && positionGrabber30 == 1){
+	else if(joy1Btn(1) && positionGrabber30 == 1) {
 			positionGrabber30 = 0; // toggle up
-			servo[grabber30]=0;
-			servo[grabber30]= 255;
+			servo[grabber30] = 0;
+			servo[grabber30] = 255;
 			wait1Msec(500);
 		}
 
-		wait1Msec(10);
+		wait1Msec(10); // necessary if using task control to allow for other tasks to run
 	}
 }
 /* End Tube 30 Task */
 
 /* Start Tube 60 Task */
-task tube60 (){
+task tube60() {
 
-	while(true){
-		if(joy1Btn(3) && positionGrabber60 == 0){ // if you hit it and the grabber is up, take it down
+	while(true) {
+		if(joy1Btn(3) && positionGrabber60 == 0) { // if you hit it and the grabber is up, take it down
 			positionGrabber60 = 1;  // toggle down
-			servo[grabber60]= 255;
-			servo[grabber60]=0;
+			servo[grabber60] = 255;
+			servo[grabber60] = 0;
 			wait1Msec(500);
 	}
 
-	else if(joy1Btn(3) && positionGrabber60 == 1){
+	else if(joy1Btn(3) && positionGrabber60 == 1) {
 			positionGrabber60 = 0; // toggle up
-			servo[grabber60]=0;
-			servo[grabber60]= 255;
+			servo[grabber60] = 0;
+			servo[grabber60] = 255;
 			wait1Msec(500);
 		}
 
-		wait1Msec(10);
+		wait1Msec(10); // necessary if using task control to allow for other tasks to run
 	}
 }
 /* End Tube 60 Task */
 
 /* Start Door 30 Task */
-task door30 (){
+task door30() {
 
-	while(true){
-		if(joy1Btn(4) && positionDump30 == 0){
+	while(true) {
+		if(joy1Btn(4) && positionDump30 == 0) {
 			positionDump30 = 1;  // toggle open
-			servo[dump30]= 255;
-			servo[dump30]=0;
+			servo[dump30] = 255;
+			servo[dump30] = 0;
 			wait1Msec(500);
 	}
 
-	else if(joy1Btn(4) && positionDump30 == 1){
+	else if(joy1Btn(4) && positionDump30 == 1) {
 			positionDump30 = 0; // toggle closed
-			servo[dump30]=0;
-			servo[dump30]= 255;
+			servo[dump30] = 0;
+			servo[dump30] = 255;
 			wait1Msec(500);
 		}
 
-		wait1Msec(10);
+		wait1Msec(10); // necessary if using task control to allow for other tasks to run
 	}
 }
 /* End Door 30 Task */
 
 /* Start Door 60 Task */
-task door60 (){
+task door60() {
 
-	while(true){
-		if(joy1Btn(2) && positionDump60 == 0){
+	while(true) {
+		if(joy1Btn(2) && positionDump60 == 0) {
 			positionDump60 = 1;  // toggle open
-			servo[dump60]= 255;
-			servo[dump60]=0;
+			servo[dump60] = 255;
+			servo[dump60] = 0;
 			wait1Msec(500);
 	}
 
-	else if(joy1Btn(2) && positionDump60 == 1){
+	else if(joy1Btn(2) && positionDump60 == 1) {
 			positionDump60 = 0; // toggle closed
-			servo[dump60]=0;
-			servo[dump60]= 255;
+			servo[dump60] = 0;
+			servo[dump60] = 255;
 			wait1Msec(500);
 		}
 
-		wait1Msec(10);
+		wait1Msec(10); // necessary if using task control to allow for other tasks to run
 	}
 }
 /* End Door 60 Task */
 
-/* Start basic mecanum wheel drive */
-task drive(){
+/* Start Mecanum Wheel Drive */
+task drive() {
 	float x1, y1, x2, y2, LF, RF, LB, RB;
 	float motorMultiplier = 25/32;
 	int minJoy = 12;
 
-	while(true){
+	while(true) {
 
 		// Resets movement values
 		LF = 0;
@@ -149,19 +153,19 @@ task drive(){
 		y2 = joystick.joy1_y2 * motorMultiplier;
 
 		// Checking Joystick Threshold
-		if (joystick.joy1_x1 < minJoy){
+		if(joystick.joy1_x1 < minJoy) {
 			x1 = 0;
 		}
 
-		if (joystick.joy1_x2 < minJoy){
+		if(joystick.joy1_x2 < minJoy) {
 			x2 = 0;
 		}
 
-		if (joystick.joy1_y1 < minJoy){
+		if(joystick.joy1_y1 < minJoy) {
 			y1 = 0;
 		}
 
-		if (joystick.joy1_y2 < minJoy){
+		if(joystick.joy1_y2 < minJoy) {
 			y2 = 0;
 		}
 
@@ -188,64 +192,69 @@ task drive(){
 		motor[FR] = RF;
 		motor[BL] = LB;
 		motor[BR] = RB;
-		wait1Msec(10); // necessary if using task control to allow for other tasks to run
-	}
-}
-
-task sliderLift(){
-	motor[armLift]=0;
-
-	while(true){
-		if(joy1Btn(5)){
-			motor[armLift]=20;
-		}
-
-		else if(joy1Btn(7)){
-			motor[armLift]=-20;
-		}
-
-		else{
-			motor[armLift]=0;
-		}
 
 		wait1Msec(10); // necessary if using task control to allow for other tasks to run
 	}
 }
+/* End Mecanum Wheel Drive */
 
-/* task rotateContainer(){
-	motor[BallContainer]=0;
-	while(true){
+/* Start Arm Slider Task */
+task armSlider() {
+	motor[armLift] = 0; // the motor is set to not move
 
-		if(joy1Btn(4)){
-			motor[BallContainer]=15;
+	while(true) {
+		if(joy1Btn(5)) {
+			motor[armLift] = 20; // move slider up
 		}
 
-		else if(joy1Btn(6)){
-			motor[BallContainer]=-15;
+		else if(joy1Btn(7)) {
+			motor[armLift] = -20; // move slider down
 		}
 
-		else{
-			motor[BallContainer]=0;
+		else {
+			motor[armLift] = 0; // if the button isn't pressed the slider won't move
+		}
+
+		wait1Msec(10); // necessary if using task control to allow for other tasks to run
+	}
+}
+/* End Slider Lift Task */
+
+/* task rotateContainer() {
+	motor[BallContainer] = 0;
+	while(true) {
+
+		if(joy1Btn(4)) {
+			motor[BallContainer] = 15;
+		}
+
+		else if(joy1Btn(6)) {
+			motor[BallContainer] = -15;
+		}
+
+		else {
+			motor[BallContainer] = 0;
 		}
 
 		wait1Msec(10); // necessary if using task control to allow for other tasks to run
 	}
 } */
 
-task main(){
+/* Start Main Task */
+task main() {
 	initializeRobot();
 
 	waitForStart();   // wait for start of tele-op phase
 
-	StartTask (tube30);
-	StartTask (tube60);
-	StartTask (door30);
-	StartTask (door60);
-	StartTask (drive);
-	StartTask (sliderLift);
+	StartTask(tube30);
+	StartTask(tube60);
+	StartTask(door30);
+	StartTask(door60);
+	StartTask(drive);
+	StartTask(armSlider);
 
-	while (true)
-	{
+	while(true) {
 		wait10Msec(1000);
 	}
 }
+/* End Main Task */

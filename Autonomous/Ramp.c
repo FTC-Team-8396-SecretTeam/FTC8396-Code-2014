@@ -27,15 +27,15 @@ task main()
 {
   initializeRobot();
 
-  waitForStart(); // Wait for the beginning of autonomous phase.
+  waitForStart(); // wait for the beginning of autonomous phase
 
-  	motor[FR] = 50;
-	  motor[FL] = 50;
-	  motor[BR] = 50;
-	  motor[BL] = 50;
-	  wait1Msec(2000);
-	  motor[FR] = 0;
-	  motor[FL] = 0;
-	  motor[BR] = 0;
-	  motor[BL] = 0;
+  motor[FL] = 50;
+	motor[FR] = 50;
+	motor[BL] = 50;
+	motor[BR] = 50;
+	wait1Msec(2000);
+  motor[FL] = 0;
+	motor[FR] = 0;
+	motor[BL] = 0;
+	motor[BR] = 0;
 }
