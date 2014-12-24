@@ -18,10 +18,9 @@
 
 /* Start Drivers */
 #include "JoystickDriver.c" // include file to "handle" the Bluetooth messages
-#include "HTAC-driver.h" // HiTechnic Acceleration Sensor Driver
-#include "HTMC-driver.h" // HiTechnic Compass Sensor Driver
-#include "HTGYRO-driver.h" // HiTechnic Gyroscopic Sensor Driver
-#include "HTIRS2-driver.h" // HiTechnic IR Seeker V2 Driver
+#include "Drivers/hightechnic-accelerometer.h" // HiTechnic Acceleration Sensor Driver
+#include "Drivers/hightechnic-compass.h" // HiTechnic Compass Sensor Driver
+#include "Drivers/hightechnic-irseeker-v2.h" // HiTechnic IR Seeker V2 Driver
 /* End Drivers */
 
 /* Start Integers */
