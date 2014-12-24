@@ -31,11 +31,16 @@ int positionDump30; // position dump30 servo
 int positionDump60; // position dump60 servo
 /* End Integers */
 
+float x1, y1, x2, y2, LF, RF, LB, RB;
+float motorMultiplier;
+
 void initializeRobot(){
 	positionGrabber30 = 0; // position grabber30 servo to up
 	positionGrabber60 = 0; // position grabber60 servo to up
 	positionDump30 = 0; // position dump30 servo to closed
 	positionDump60 = 0; // position dump60 servo to closed
+	servo[grabber30] = 120;
+	servo[grabber60] = 120;
 
 	return;
 }
@@ -47,14 +52,12 @@ task tube30() {
 		if(joy1Btn(1) && positionGrabber30 == 0) { // if you hit it and the grabber is up, take it down
 			positionGrabber30 = 1;  // toggle down
 			servo[grabber30] = 255;
-			servo[grabber30] = 0;
 			wait1Msec(500);
 	}
 
 	else if(joy1Btn(1) && positionGrabber30 == 1) {
 			positionGrabber30 = 0; // toggle up
-			servo[grabber30] = 0;
-			servo[grabber30] = 255;
+			servo[grabber30] = 120;
 			wait1Msec(500);
 		}
 
@@ -70,14 +73,12 @@ task tube60() {
 		if(joy1Btn(3) && positionGrabber60 == 0) { // if you hit it and the grabber is up, take it down
 			positionGrabber60 = 1;  // toggle down
 			servo[grabber60] = 255;
-			servo[grabber60] = 0;
 			wait1Msec(500);
 	}
 
 	else if(joy1Btn(3) && positionGrabber60 == 1) {
 			positionGrabber60 = 0; // toggle up
-			servo[grabber60] = 0;
-			servo[grabber60] = 255;
+			servo[grabber60] = 120;
 			wait1Msec(500);
 		}
 
@@ -134,8 +135,7 @@ task door60() {
 
 /* Start Mecanum Wheel Drive */
 task drive() {
-	float x1, y1, x2, y2, LF, RF, LB, RB;
-	float motorMultiplier = 25/32;
+	motorMultiplier = 0.78; // 25/32
 	int minJoy = 12;
 
 	while(true) {
@@ -153,19 +153,19 @@ task drive() {
 		y2 = joystick.joy1_y2 * motorMultiplier;
 
 		// Checking Joystick Threshold
-		if(joystick.joy1_x1 < minJoy) {
+		if (abs(joystick.joy1_x1) < minJoy){
 			x1 = 0;
 		}
 
-		if(joystick.joy1_x2 < minJoy) {
+		if (abs(joystick.joy1_x2) < minJoy){
 			x2 = 0;
 		}
 
-		if(joystick.joy1_y1 < minJoy) {
+		if (abs(joystick.joy1_y1) < minJoy){
 			y1 = 0;
 		}
 
-		if(joystick.joy1_y2 < minJoy) {
+		if (abs(joystick.joy1_y2) < minJoy){
 			y2 = 0;
 		}
 
