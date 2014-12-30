@@ -3,43 +3,58 @@
 #pragma config(Sensor, S2,     irSensor,       sensorHiTechnicIRSeeker1200)
 #pragma config(Sensor, S3,     accelerometer,  sensorI2CHiTechnicAccel)
 #pragma config(Sensor, S4,     compass,        sensorI2CHiTechnicCompass)
+#pragma config(Motor,  motorA,          grabber30L,    tmotorNXT, PIDControl, encoder)
+#pragma config(Motor,  motorB,          grabber30R,    tmotorNXT, PIDControl, encoder)
+#pragma config(Motor,  motorC,          grabber60L,    tmotorNXT, PIDControl, encoder)
 #pragma config(Motor,  mtr_S1_C1_1,     FL,            tmotorTetrix, openLoop, encoder)
-#pragma config(Motor,  mtr_S1_C1_2,     FR,            tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S1_C1_2,     FR,            tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_1,     BL,            tmotorTetrix, openLoop, encoder)
-#pragma config(Motor,  mtr_S1_C2_2,     BR,            tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S1_C2_2,     BR,            tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C3_1,     armLift,       tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C3_2,     motorI,        tmotorTetrix, openLoop)
-#pragma config(Servo,  srvo_S1_C4_1,    grabber30,            tServoStandard)
-#pragma config(Servo,  srvo_S1_C4_2,    grabber60,            tServoStandard)
+#pragma config(Servo,  srvo_S1_C4_1,    grabber60R,           tServoStandard)
+#pragma config(Servo,  srvo_S1_C4_2,    servo2,               tServoStandard)
 #pragma config(Servo,  srvo_S1_C4_3,    dump30,               tServoStandard)
 #pragma config(Servo,  srvo_S1_C4_4,    dump60,               tServoStandard)
 #pragma config(Servo,  srvo_S1_C4_5,    servo5,               tServoNone)
 #pragma config(Servo,  srvo_S1_C4_6,    servo6,               tServoNone)
 
-/* Start Drivers */
+/* Drivers */
 #include "JoystickDriver.c" // include file to "handle" the Bluetooth messages
-#include "Drivers/hightechnic-accelerometer.h" // HiTechnic Acceleration Sensor Driver
-#include "Drivers/hightechnic-compass.h" // HiTechnic Compass Sensor Driver
-#include "Drivers/hightechnic-irseeker-v2.h" // HiTechnic IR Seeker V2 Driver
-/* End Drivers */
 
-/* Start Integers */
+/* Integers */
 int positionGrabber30; // position grabber30 servo
 int positionGrabber60; // position grabber60 servo
 int positionDump30; // position dump30 servo
 int positionDump60; // position dump60 servo
-/* End Integers */
+
+const int GRABBER60RUP = 120; // up position for the grabber60R servo
+const int GRABBER60RDOWN = 255; // down position for the grabber60L servo
 
 float x1, y1, x2, y2, LF, RF, LB, RB;
 float motorMultiplier;
+const int LEGOMOTORTARGET = 160; //sets how far the lego motors move for grabbers
+
+int DEBUGliftPosition = nMotorEncoder[armLift];
 
 void initializeRobot(){
 	positionGrabber30 = 0; // position grabber30 servo to up
 	positionGrabber60 = 0; // position grabber60 servo to up
 	positionDump30 = 0; // position dump30 servo to closed
 	positionDump60 = 0; // position dump60 servo to closed
-	servo[grabber30] = 120;
-	servo[grabber60] = 120;
+	servo[dump60] = 70; // sets servo to the "closed" position
+	servo[dump30] = 190; // sets servo to the "closed" position
+	// servo[grabber30] = 120;
+
+	// intialize the 3 motors and 1 servo for grabbers
+	servo[grabber60R] = GRABBER60RUP;
+	nMotorEncoder[grabber30L] = 0;
+	nMotorEncoder[grabber30R] = 0;
+	nMotorEncoder[grabber60L] = 0;
+	motor[grabber30L] = 0;
+	motor[grabber30R] = 0;
+	motor[grabber60L] = 0;
+
 
 	return;
 }
@@ -50,14 +65,32 @@ task tube30() {
 	while(true){
 		if(joy1Btn(1) && positionGrabber30 == 0) { // if you hit it and the grabber is up, take it down
 			positionGrabber30 = 1;  // toggle down
-			servo[grabber30] = 255;
-			wait1Msec(500);
-	}
+			nMotorEncoderTarget[grabber30L] = LEGOMOTORTARGET;
+			nMotorEncoderTarget[grabber30R] = LEGOMOTORTARGET;
+			motor[grabber30L] = 50;
+			motor[grabber30R] = 50;
 
-	else if(joy1Btn(1) && positionGrabber30 == 1) {
+			//while(nMotorRunState[grabber30R] != runStateIdle ) { //I hope we don't need to watch both.
+			//}
+			wait1Msec(300);
+			motor[grabber30L] = 1;
+			motor[grabber30R] = 1;
+			wait1Msec(200);
+		}
+
+		else if(joy1Btn(1) && positionGrabber30 == 1) {
 			positionGrabber30 = 0; // toggle up
-			servo[grabber30] = 120;
-			wait1Msec(500);
+			nMotorEncoderTarget[grabber30L] = LEGOMOTORTARGET;
+			nMotorEncoderTarget[grabber30R] = LEGOMOTORTARGET;
+			motor[grabber30L] = -50;
+			motor[grabber30R] = -50;
+
+			//while(nMotorRunState[grabber30R] != runStateIdle ) { //I hope we don't need to watch both.
+			//}
+			wait1Msec(300);
+			motor[grabber30L] = 0;
+			motor[grabber30R] = 0;
+			wait1Msec(200);
 		}
 
 		wait1Msec(10); // necessary if using task control to allow for other tasks to run
@@ -71,14 +104,27 @@ task tube60() {
 	while(true) {
 		if(joy1Btn(3) && positionGrabber60 == 0) { // if you hit it and the grabber is up, take it down
 			positionGrabber60 = 1;  // toggle down
-			servo[grabber60] = 255;
-			wait1Msec(500);
+			servo[grabber60R] = GRABBER60RDOWN;
+			nMotorEncoderTarget[grabber60L] = LEGOMOTORTARGET;
+			motor[grabber60L] = 50;
+		//	while(nMotorRunState[grabber60L] != runStateIdle ) { //I hope we don't need to watch both.
+			//}
+			wait1Msec(300);
+			motor[grabber60L] = 1;
+			wait1Msec(200);
 	}
 
 	else if(joy1Btn(3) && positionGrabber60 == 1) {
 			positionGrabber60 = 0; // toggle up
-			servo[grabber60] = 120;
-			wait1Msec(500);
+			servo[grabber60R] = GRABBER60RUP;
+			nMotorEncoder[grabber60L] = 0;
+			nMotorEncoderTarget[grabber60L] = LEGOMOTORTARGET;
+			motor[grabber60L] = -50;
+			wait1Msec(300);
+			//while(nMotorRunState[grabber60L] != runStateIdle ) { //I hope we don't need to watch both.
+			//}
+			motor[grabber60L] = 0;
+			wait1Msec(200);
 		}
 
 		wait1Msec(10); // necessary if using task control to allow for other tasks to run
@@ -92,15 +138,15 @@ task door30() {
 	while(true) {
 		if(joy1Btn(4) && positionDump30 == 0) {
 			positionDump30 = 1;  // toggle open
-			servo[dump30] = 255;
-			servo[dump30] = 0;
+
+			servo[dump30] = 150;
 			wait1Msec(500);
 	}
 
 	else if(joy1Btn(4) && positionDump30 == 1) {
 			positionDump30 = 0; // toggle closed
-			servo[dump30] = 0;
-			servo[dump30] = 255;
+
+			servo[dump30] = 190;
 			wait1Msec(500);
 		}
 
@@ -115,15 +161,13 @@ task door60() {
 	while(true) {
 		if(joy1Btn(2) && positionDump60 == 0) {
 			positionDump60 = 1;  // toggle open
-			servo[dump60] = 255;
-			servo[dump60] = 0;
+			servo[dump60] = 100;
 			wait1Msec(500);
-	}
+		}
 
-	else if(joy1Btn(2) && positionDump60 == 1) {
+		else if(joy1Btn(2) && positionDump60 == 1) {
 			positionDump60 = 0; // toggle closed
-			servo[dump60] = 0;
-			servo[dump60] = 255;
+			servo[dump60] = 70;
 			wait1Msec(500);
 		}
 
@@ -200,44 +244,46 @@ task drive() {
 /* Start Arm Slider Task */
 task armSlider() {
 	motor[armLift] = 0; // the motor is set to not move
+	nMotorEncoder[armLift] = 0; //set initial motor spot.
+	int positionLift = 0; // the lift starts down
+	//1 rotation of wheel = 280 * 4 = 1120 encoder ticks
+	const int ARMLIFTTARGET = 2146; //distance the motor rotztes to lift to the 60cm goal.
+	DEBUGliftPosition = nMotorEncoder[armLift];
 
 	while(true) {
-		if(joy1Btn(5)) {
-			motor[armLift] = 20; // move slider up
+		if(joy1Btn(5) && positionLift == 0) {
+	//		nMotorEncoder[armLift] = 0;
+			positionLift = 1;
+			motor[armLift] = 20;
+			ClearTimer(T1);
+			while(nMotorEncoder[armLift] < ARMLIFTTARGET && time1[T1]<3000) { //until you hit the target or 3 secs
+				DEBUGliftPosition = nMotorEncoder[armLift];}
+			//nMotorEncoderTarget[armLift] = ARMLIFTTARGET;// 1 and 11/12 revs = 1120 + 1026 for Andymark Neverrest motors
+			//while(true){
+				//DEBUGliftPosition = nMotorEncoder[armLift];}
+			motor[armLift]=0;
+			wait1Msec(500);
 		}
 
-		else if(joy1Btn(7)) {
+		else if(joy1Btn(5) && positionLift == 1) {
+			//nMotorEncoder[armLift] = 0;
+			positionLift = 0;
 			motor[armLift] = -20; // move slider down
+			ClearTimer(T1);
+			while(nMotorEncoder[armLift] > 150 && time1[T1]<2500) {
+				DEBUGliftPosition = nMotorEncoder[armLift];}
+			//
+			motor[armLift]=0;
+			wait1Msec(500);
 		}
 
-		else {
+	/*	else {
 			motor[armLift] = 0; // if the button isn't pressed the slider won't move
-		}
+		} */
 
 		wait1Msec(10); // necessary if using task control to allow for other tasks to run
 	}
 }
-/* End Slider Lift Task */
-
-/* task rotateContainer() {
-	motor[BallContainer] = 0;
-	while(true) {
-
-		if(joy1Btn(4)) {
-			motor[BallContainer] = 15;
-		}
-
-		else if(joy1Btn(6)) {
-			motor[BallContainer] = -15;
-		}
-
-		else {
-			motor[BallContainer] = 0;
-		}
-
-		wait1Msec(10); // necessary if using task control to allow for other tasks to run
-	}
-} */
 
 /* Start Main Task */
 task main() {
