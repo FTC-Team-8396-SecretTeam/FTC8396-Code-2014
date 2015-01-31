@@ -21,9 +21,6 @@
 
 /* Start Drivers */
 #include "JoystickDriver.c" // include file to "handle" the Bluetooth messages
-#include "drivers/hitechnic-accelerometer.h" // HiTechnic Acceleration Sensor Driver
-#include "drivers/hitechnic-compass.h" // HiTechnic Compass Sensor Driver
-#include "drivers/hitechnic-irseeker-v2.h" // HiTechnic IR Seeker V2 Driver
 
 /* Start Integers */
 int positionGrabber30; // position grabber30 servo
@@ -216,10 +213,10 @@ task drive() {
 		RB -= x2;
 
 		// Apply Finished values to motors.
-		motor[FL] = LF * 0.50;
-		motor[FR] = RF * 0.50;
-		motor[BL] = LB * 0.50;
-		motor[BR] = RB * 0.50;
+		motor[FL] = LF;
+		motor[FR] = RF;
+		motor[BL] = LB;
+		motor[BR] = RB;
 
 		wait1Msec(10); // necessary if using task control to allow for other tasks to run
 	}

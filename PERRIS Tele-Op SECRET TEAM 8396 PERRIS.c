@@ -232,12 +232,14 @@ task drive() {
 		motor[FR] = RF;
 		motor[BL] = LB;
 		motor[BR] = RB;
+
 		if(joy1Btn(6)) {
 			motor[FL] = 100;
 			motor[FR] = 100;
 			motor[BL] = 100;
 			motor[BR] = 100;
 		}
+
 		else if(joy1Btn(8)) {
 			motor[FL] = -100;
 			motor[FR] = -100;
@@ -253,6 +255,7 @@ task drive() {
 task armSlider() {
 	motor[armLift] = 0; // the motor is set to not move
 	nMotorEncoder[armLift] = 0; //set initial motor spot.
+
 	while(true) {
 		if(joy1Btn(5)) {
 			motor[armLift] = -20;
